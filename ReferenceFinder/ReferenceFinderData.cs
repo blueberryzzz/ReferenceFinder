@@ -167,7 +167,10 @@ public class ReferenceFinderData
 
             foreach(var guid in serializedGuid)
             {
-                int[] indexes = assetDict[guid].dependencies.Select(s => guidIndex[s]).ToArray();
+                //使用 Where 子句过滤目录
+                int[] indexes = assetDict[guid].dependencies.
+                    Where(s => guidIndex.ContainsKey(s)).
+                    Select(s => guidIndex[s]).ToArray();
                 serializedDenpendencies.Add(indexes);
             }
 
