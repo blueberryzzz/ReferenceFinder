@@ -63,7 +63,10 @@ public class ReferenceFinderData
 
     //生成并加入引用信息
     private void ImportAsset(string path)
-    {        
+    {
+        if (!path.StartsWith("Assets/"))
+            return;
+
         //通过path获取guid进行储存
         string guid = AssetDatabase.AssetPathToGUID(path);
         //获取该资源的最后修改时间，用于之后的修改判断
