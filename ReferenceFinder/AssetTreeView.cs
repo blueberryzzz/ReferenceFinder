@@ -36,6 +36,13 @@ public class AssetTreeView : TreeView
         customFoldoutYOffset = (kRowHeights - EditorGUIUtility.singleLineHeight) * 0.5f; // center foldout in the row since we also center content. See RowGUI
         extraSpaceBeforeIconAndLabel = kIconWidth;
     }
+
+    //响应右击事件
+    protected override void ContextClickedItem(int id)
+    {
+        SetExpanded(id, !IsExpanded(id));
+    }
+
     //响应双击事件
     protected override void DoubleClickedItem(int id)
     {
