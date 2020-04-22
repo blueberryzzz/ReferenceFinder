@@ -32,7 +32,7 @@ public class ReferenceFinderWindow : EditorWindow
     private TreeViewState m_TreeViewState;
     
     //查找资源引用信息
-    [MenuItem("Assets/Find References")]
+    [MenuItem("Assets/Find References In Project %#&f", false, 25)]
     static void FindRef()
     {
         InitDataIfNeeded();
