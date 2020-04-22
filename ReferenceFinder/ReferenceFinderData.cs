@@ -10,6 +10,7 @@ public class ReferenceFinderData
 {
     //缓存路径
     private const string CACHE_PATH = "Library/ReferenceFinderCache";
+    private const string CACHE_VERSION = "V1";
     //资源引用信息字典
     public Dictionary<string, AssetDescription> assetDict = new Dictionary<string, AssetDescription>();    
 
@@ -72,7 +73,7 @@ public class ReferenceFinderData
         //获取该资源的最后修改时间，用于之后的修改判断
         Hash128 assetDependencyHash = AssetDatabase.GetAssetDependencyHash(path);
         //如果assetDict没包含该guid或包含了修改时间不一样则需要更新
-        if (!assetDict.ContainsKey(guid) || assetDict[guid].assetDependencyHash != assetDependencyHash)
+        if (!assetDict.ContainsKey(guid) || assetDict[guid].assetDependencyHash != assetDependencyHash.ToString())
         {
             //将每个资源的直接依赖资源转化为guid进行储存
             var guids = AssetDatabase.GetDependencies(path, false).
@@ -83,7 +84,7 @@ public class ReferenceFinderData
             AssetDescription ad = new AssetDescription();
             ad.name = Path.GetFileNameWithoutExtension(path);
             ad.path = path;
-            ad.assetDependencyHash = assetDependencyHash;
+            ad.assetDependencyHash = assetDependencyHash.ToString();
             ad.dependencies = guids;
 
             if (assetDict.ContainsKey(guid))
@@ -97,51 +98,68 @@ public class ReferenceFinderData
     public bool ReadFromCache()
     {
         assetDict.Clear();
-        if (File.Exists(CACHE_PATH))
+        if (!File.Exists(CACHE_PATH))
         {
-            var serializedGuid = new List<string>();
-            var serializedDependencyHash = new List<Hash128>();
-            var serializedDenpendencies = new List<int[]>();
-            //反序列化数据
-            using (FileStream fs = File.OpenRead(CACHE_PATH))
-            {
-                BinaryFormatter bf = new BinaryFormatter();
-                EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache", 0);
-                serializedGuid = (List<string>)bf.Deserialize(fs);
-                serializedDependencyHash = (List<Hash128>)bf.Deserialize(fs);
-                serializedDenpendencies = (List<int[]>)bf.Deserialize(fs);
-                EditorUtility.ClearProgressBar();
-            }
-
-            for (int i = 0; i < serializedGuid.Count; ++i)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(serializedGuid[i]);
-                if (!string.IsNullOrEmpty(path))
-                {
-                    var ad = new AssetDescription();
-                    ad.name = Path.GetFileNameWithoutExtension(path);
-                    ad.path = path;
-                    ad.assetDependencyHash = serializedDependencyHash[i];
-                    assetDict.Add(serializedGuid[i], ad);
-                }
-            }
-
-            for(int i = 0; i < serializedGuid.Count; ++i)
-            {
-                string guid = serializedGuid[i];
-                if (assetDict.ContainsKey(guid))
-                {
-                    var guids = serializedDenpendencies[i].
-                        Select(index => serializedGuid[index]).
-                        Where(g => assetDict.ContainsKey(g)).
-                        ToList();
-                    assetDict[guid].dependencies = guids;
-                }
-            }
-            UpdateReferenceInfo();
-            return true;
+            return false;
         }
-        return false;
+
+        var serializedGuid = new List<string>();
+        var serializedDependencyHash = new List<string>();
+        var serializedDenpendencies = new List<int[]>();
+        //反序列化数据
+        FileStream fs = File.OpenRead(CACHE_PATH);
+        try
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            string cacheVersion = (string) bf.Deserialize(fs);
+            if (cacheVersion != CACHE_VERSION)
+            {
+                return false;
+            }
+
+            EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache", 0);
+            serializedGuid = (List<string>) bf.Deserialize(fs);
+            serializedDependencyHash = (List<string>) bf.Deserialize(fs);
+            serializedDenpendencies = (List<int[]>) bf.Deserialize(fs);
+            EditorUtility.ClearProgressBar();
+        }
+        catch
+        {
+            //兼容旧版本序列化格式
+            return false;
+        }
+        finally
+        {
+            fs.Close();
+        }
+
+        for (int i = 0; i < serializedGuid.Count; ++i)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(serializedGuid[i]);
+            if (!string.IsNullOrEmpty(path))
+            {
+                var ad = new AssetDescription();
+                ad.name = Path.GetFileNameWithoutExtension(path);
+                ad.path = path;
+                ad.assetDependencyHash = serializedDependencyHash[i];
+                assetDict.Add(serializedGuid[i], ad);
+            }
+        }
+
+        for(int i = 0; i < serializedGuid.Count; ++i)
+        {
+            string guid = serializedGuid[i];
+            if (assetDict.ContainsKey(guid))
+            {
+                var guids = serializedDenpendencies[i].
+                    Select(index => serializedGuid[index]).
+                    Where(g => assetDict.ContainsKey(g)).
+                    ToList();
+                assetDict[guid].dependencies = guids;
+            }
+        }
+        UpdateReferenceInfo();
+        return true;
     }
 
     //写入缓存
@@ -151,7 +169,7 @@ public class ReferenceFinderData
             File.Delete(CACHE_PATH);
 
         var serializedGuid = new List<string>();
-        var serializedDependencyHash = new List<Hash128>();
+        var serializedDependencyHash = new List<string>();
         var serializedDenpendencies = new List<int[]>();
         //辅助映射字典
         var guidIndex = new Dictionary<string, int>();
@@ -175,6 +193,7 @@ public class ReferenceFinderData
             }
 
             BinaryFormatter bf = new BinaryFormatter();
+            bf.Serialize(fs, CACHE_VERSION);
             bf.Serialize(fs, serializedGuid);
             bf.Serialize(fs, serializedDependencyHash);
             bf.Serialize(fs, serializedDenpendencies);
@@ -190,7 +209,7 @@ public class ReferenceFinderData
             if (File.Exists(ad.path))
             {
                 //修改时间与记录的不同为修改过的资源
-                if (ad.assetDependencyHash != AssetDatabase.GetAssetDependencyHash(ad.path))
+                if (ad.assetDependencyHash != AssetDatabase.GetAssetDependencyHash(ad.path).ToString())
                 {
                     ad.state = AssetState.CHANGED;
                 }
@@ -241,7 +260,7 @@ public class ReferenceFinderData
     {
         public string name = "";
         public string path = "";
-        public Hash128 assetDependencyHash;        
+        public string assetDependencyHash;
         public List<string> dependencies = new List<string>();
         public List<string> references = new List<string>();
         public AssetState state = AssetState.NORMAL;
