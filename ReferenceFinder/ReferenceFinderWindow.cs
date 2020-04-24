@@ -42,7 +42,7 @@ public class ReferenceFinderWindow : EditorWindow
     }
     
     //打开窗口
-    [MenuItem("Window/Refrence Finder", false, 1000)]
+    [MenuItem("Window/Reference Finder", false, 1000)]
     static void OpenWindow()
     {
         ReferenceFinderWindow window = GetWindow<ReferenceFinderWindow>();
