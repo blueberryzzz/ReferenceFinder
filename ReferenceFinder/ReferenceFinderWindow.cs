@@ -32,7 +32,7 @@ public class ReferenceFinderWindow : EditorWindow
     private TreeViewState m_TreeViewState;
     
     //查找资源引用信息
-    [MenuItem("Assets/Find References")]
+    [MenuItem("Assets/Find References In Project %#&f", false, 25)]
     static void FindRef()
     {
         InitDataIfNeeded();
@@ -42,7 +42,7 @@ public class ReferenceFinderWindow : EditorWindow
     }
     
     //打开窗口
-    [MenuItem("Window/Refrence Finder", false, 1000)]
+    [MenuItem("Window/Reference Finder", false, 1000)]
     static void OpenWindow()
     {
         ReferenceFinderWindow window = GetWindow<ReferenceFinderWindow>();
@@ -204,16 +204,23 @@ public class ReferenceFinderWindow : EditorWindow
         int elementCount = 0;
         var root = new AssetViewItem { id = elementCount, depth = -1, displayName = "Root", data = null };
         int depth = 0;
+        var stack = new Stack<string>();
         foreach (var childGuid in selectedAssetGuid)
         {
-            root.AddChild(CreateTree(childGuid, ref elementCount, depth));
+            var child = CreateTree(childGuid, ref elementCount, depth, stack);
+            if (child != null)
+                root.AddChild(child);
         }
         updatedAssetSet.Clear();
         return root;
     }
     //通过每个节点的数据生成子节点
-    private  AssetViewItem CreateTree(string guid, ref int elementCount, int _depth)
+    private  AssetViewItem CreateTree(string guid, ref int elementCount, int _depth, Stack<string> stack)
     {
+        if (stack.Contains(guid))
+            return null;
+
+        stack.Push(guid);
         if (needUpdateState && !updatedAssetSet.Contains(guid))
         {
             data.UpdateAssetState(guid);
@@ -225,8 +232,12 @@ public class ReferenceFinderWindow : EditorWindow
         var childGuids = isDepend ? referenceData.dependencies : referenceData.references;
         foreach (var childGuid in childGuids)
         {
-            root.AddChild(CreateTree(childGuid, ref elementCount, _depth + 1));
+            var child = CreateTree(childGuid, ref elementCount, _depth + 1, stack);
+            if (child != null)
+                root.AddChild(child);
         }
+
+        stack.Pop();
         return root;
     }
 }
