@@ -57,7 +57,10 @@ public class ReferenceFinderData
         {
             foreach(var assetGuid in asset.Value.dependencies)
             {
-                assetDict[assetGuid].references.Add(asset.Key);
+                if(assetDict.ContainsKey(assetGuid) && !assetDict[assetGuid].references.Contains(asset.Key))
+                {
+                    assetDict[assetGuid].references.Add(asset.Key);
+                }
             }
         }
     }
