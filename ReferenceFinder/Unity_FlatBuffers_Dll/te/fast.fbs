@@ -1,0 +1,17 @@
+namespace Companyage;
+
+
+table IntArray {
+  values:[int];
+}
+
+
+
+table Gun {
+  serializedGuid :[string];
+  serializedDependencyHash : [string];
+  serializedDenpendencies:[IntArray];
+}
+
+root_type Gun;
+file_identifier "WHAT";

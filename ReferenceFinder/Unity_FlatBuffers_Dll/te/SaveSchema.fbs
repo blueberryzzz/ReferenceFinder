@@ -1,0 +1,32 @@
+namespace Zoo;
+ 
+enum Animal_Type:byte
+{
+     tiger = 0,//ÀÏ»¢
+     lion=1,//Ê¨×Ó
+     giraffe=2,//³¤¾±Â¹
+     kangaroo=3,//´üÊó
+     monkey=4,//ºï
+}
+ 
+table Animal_Fb
+{
+     type:Animal_Type;
+     note:string;
+     num:long;
+}
+ 
+table Director_Fb
+{
+     name:string;
+     age:long;
+}
+ 
+table Zoo_Fb
+{
+     name:string;
+     director:Director_Fb;
+     animals:[Animal_Fb];
+}
+ 
+root_type Zoo_Fb;
