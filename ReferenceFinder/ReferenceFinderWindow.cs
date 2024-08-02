@@ -3,6 +3,13 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 using UnityEditor.IMGUI.Controls;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
+using System;
+using static UnityEngine.Rendering.DebugUI;
+using static UnityEditor.Progress;
+using System.Globalization;
+using System.Linq;
 
 public class ReferenceFinderWindow : EditorWindow
 {
@@ -30,11 +37,96 @@ public class ReferenceFinderWindow : EditorWindow
 
     [SerializeField]
     private TreeViewState m_TreeViewState;
-    
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    private static extern int Add(int x, int y, string b, List<string> bbbb);
+    [DllImport("Unity_FlatBuffers_Dll")]
+    private static extern int Max(int x, int y);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static  extern bool GenerateItems(   IntPtr itemCount, IntPtr itemsFound);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern bool GenerateItems1(int arrayLength,string[] stringArray );
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern bool readgunserializedGuid(string file, int arrayLength, IntPtr stringArray);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern bool readgunserializedGuidSize(string file, IntPtr arrayLength);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern bool readgunserializedDependencyHash(string file, int arrayLength, IntPtr stringArray);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern bool readgunserializedDependencyHashSize(string file, IntPtr arrayLength);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern bool readgunserializedDenpendencies(string file, int arrayLength, int itemCount2, IntPtr[] stringArray, IntPtr callbackfun, IntPtr delegatefun);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern bool readgunserializedDenpendenciesSize(string file, IntPtr arrayLength);
+
     //查找资源引用信息
     [MenuItem("Assets/Find References In Project %#&f", false, 25)]
+    static unsafe void test()
+    {
+
+        int bs;
+        IntPtr dd = (IntPtr)(&bs);
+
+        // 创建字符串数组
+        string[] stringArray = new string[560000];
+
+        // 分配非托管内存
+        IntPtr unmanagedArray = Marshal.AllocHGlobal(IntPtr.Size * stringArray.Length);
+
+        // 调用C++函数
+        readgunserializedGuid("xdfdf", 10, unmanagedArray);
+        // FillStringArray(unmanagedArray, stringArray.Length);
+
+        // 从非托管内存中读取字符串
+        for (int i = 0; i < stringArray.Length; i++)
+        {
+            IntPtr strPtr = Marshal.ReadIntPtr(unmanagedArray, i * IntPtr.Size);
+            stringArray[i] = Marshal.PtrToStringAnsi(strPtr);
+            
+        }
+
+        // 释放非托管内存
+        Marshal.FreeHGlobal(unmanagedArray);
+
+        List<string> bbb = new List<string>();
+        bbb = stringArray.ToList();
+        Debug.Log("xxxxxx zhuanhyuangchengg" + bbb.Count.ToString());
+        int ii = 0;
+        foreach (string b in bbb)
+        {
+            Debug.Log("xxxxxx zhuanhyuangchengg" + b);
+            ii++;
+            if (ii == 300)
+            {
+                break;
+            }
+        }
+        
+
+
+
+
+    }
     static void FindRef()
     {
+       
+            //Add(1, 2);
+         Debug.Log("xxxxxx"); 
+        
+        List<string> liststr = new List<string>();
+        liststr.Add("bbbbb");
+        liststr.ToArray();
+
+        // Debug.Log("xxxxxx Start  " + Add(1, 2, "xxxxx", liststr));
+        Debug.Log("xxxxxx Start  " + Max(1, 2));
         InitDataIfNeeded();
         OpenWindow();
         ReferenceFinderWindow window = GetWindow<ReferenceFinderWindow>();
