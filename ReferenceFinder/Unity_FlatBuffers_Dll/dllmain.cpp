@@ -1,4 +1,5 @@
 ﻿// dllmain.cpp : 定义 DLL 应用程序的入口点。
+#define  _CRT_SECURE_NO_WARNINGS 1
 #include "pch.h"
 
 
@@ -7,6 +8,7 @@
 #include<iostream>
 #include<vector>
 #include<limits>
+#include<io.h>
 #include <algorithm>
 #include "SaveSchema_generated.h"
 #include "ssssss_generated.h"
@@ -16,6 +18,7 @@
 #include<iostream>
 #include<vector>
 // dllmain.cpp : 定义 DLL 应用程序的入口点。
+
 
 
 //宏定义  
@@ -117,7 +120,41 @@ void readflatbuff(const char* filename) {
         break;
     }
 }
-void creagame(const char* filename) {
+
+
+bool isFileExists_stat(const char* filename) {
+    struct stat buffer;
+    return (stat(filename, &buffer) == 0);
+}
+
+bool isFileExists_ifstream(const char* filename) {
+    std::ifstream f(filename);
+    return f.good();
+}
+
+bool isFileExists_fopen(const char* filename) {
+    if (FILE* file = fopen(filename, "r")) {
+        fclose(file);
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+bool isFileExists_access(const char* filename)
+{
+    if (_access(filename, 0) == 0)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+int creagame(const char* filename) {
     using namespace Companyage;
     //CreateGun()
     flatbuffers::FlatBufferBuilder builder(1024);
@@ -127,18 +164,25 @@ void creagame(const char* filename) {
         gu->serializedDependencyHash.emplace_back("xxgdfgfdggggggggggggggggrewwwwwwwrrrrrtttttttttttttttthdrgsefweawfeasfesfsdvsdfv");
         gu->serializedGuid.emplace_back("xxxdd xxgdfgfdggggggggggggggggrewwwwwwwrrrrrtttttttttttttttthdrgsefweawfeasfesfsdvsdfv");
         
-        IntArrayT* b = new IntArrayT();
+        IntArrayT* b =  new IntArrayT();
         if (i % 3 == 0) {
-            b->values = { 1,2,3 };
+            b->values.emplace_back(1);// = { 1,2,3 };
+            b->values.emplace_back(2);
+            b->values.emplace_back(3);
+            b->values.emplace_back(4);
+            
+            b->values.emplace_back(5);
         }
         else if(i%2==0) {
-            b->values = { 1,2,3,4,5,6,7,8,9,1,0,2,2,2 };
+            //b->values = { 1,2,3,4,5,6,7,8,9,1,0,2,2,2 };
+            b->values.emplace_back(9);
+            b->values.emplace_back(10);
         }
         else {
             b->values = {  };
         }
         
-        
+       
         gu->serializedDenpendencies.emplace_back(b);
         
     }
@@ -149,8 +193,19 @@ void creagame(const char* filename) {
     uint8_t* buf = builder.GetBufferPointer();
     int size = builder.GetSize();  // Returns the size of the buffer that
     //`GetBufferPointer()` points to.
-    std::ofstream output(filename, std::ofstream::binary);
-    output.write((const char*)buf, size);
+
+    
+    if (!isFileExists_access(filename)) {
+        // 文件不存在才会创建测试文件
+        std::ofstream output(filename, std::ofstream::binary);
+        output.write((const char*)buf, size);
+        output.close();
+        return 0;
+    }
+    else {
+        return 1;
+    }
+    
 
 }
 
@@ -235,34 +290,22 @@ void _DLLExport readgunserializedDenpendencies(const char* filename, int itemCou
     using namespace Companyage;
     const char* tempchar = readFlatBuffers(filename);
     auto net = GetGun(tempchar);
-    //net->serializedDependencyHash()->GetAsString();
+    
     int Guidsize = net->serializedDenpendencies()->size();
     
-    
     for (int i = 0; i < (std::min)(itemCount, Guidsize); i++) {
-        net->serializedDenpendencies()->Get(i)->values()->size();
-        //stringArray[i] = _strdup(bbb[i]);
-        // const_cast<int*>(net->serializedDenpendencies()->Get(i)->values()->data());
-        int sizess = net->serializedDenpendencies()->Get(i)->values()->size();
-        const int* b = net->serializedDenpendencies()->Get(i)->values()->data();
-        //memccpy(bbb[i], bbb[i], 10);
-        //std::function<void(int)>  b_callbackfun = static_cast<MyDelegate>(callbackfun);
-        int* rest = callbackfun(sizess);
-        if (rest != 0) {
-            memcpy(rest, b, sizess);
-            stringArray[i] = rest;
+        auto vlueas = net->serializedDenpendencies()->Get(i)->values();
+        if (vlueas) {
+            
+           // memcpy(stringArray[i], vlueas->data(), vlueas->size());
+
+
+            for (int j = 0; j < vlueas->size(); j++) {
+                stringArray[i][j] =  vlueas->Get(j);
+            }
+            
         }
-        else {
-            delegatefun(1);
-        }
-        
-        
     }
-
-
-
-
-
 
     // 释放内存
      delete tempchar;
@@ -284,6 +327,45 @@ void _DLLExport readgunserializedDenpendenciesSize(const char* filename, int* ou
     delete tempchar;
 
     
+}
+
+int _DLLExport readgunserializedDenpendenciesIntArraySize(const char* filename, int GuidSizes, void* outGuid)
+{
+    //return;
+    using namespace Companyage;
+    const char* tempchar = readFlatBuffers(filename);
+    auto net = GetGun(tempchar);
+    //net->serializedDependencyHash()->GetAsString();
+    int Guidsize = net->serializedDenpendencies()->size();
+    //int* bbb = new int [Guidsize];
+    int* outGuidSize = static_cast<int*>(outGuid);
+    for (int i = 0; i < (std::min)(GuidSizes, Guidsize); i++) {
+
+        try {
+            ::flatbuffers::Vector<int32_t>* ssd = const_cast<::flatbuffers::Vector<int32_t> *>(net->serializedDenpendencies()->Get(i)->values());
+
+            if (ssd) {
+                int aa = ssd->size();
+                outGuidSize[i] = aa;
+            }
+            else {
+                outGuidSize[i] = 0;
+                continue;
+                // return i;
+            }
+        }
+        catch (std::exception &e) {
+            //errormes = const_cast<char*>(e.what());
+
+
+        }
+       
+    }
+   
+    
+    // 释放内存
+    delete tempchar;
+    return 0;
 }
 
 const char* readFlatBuffers(const char* filename)
@@ -342,5 +424,10 @@ int _DLLExport GenerateItems1(int itemCount, const char** stringArray)
 
     test(stringArray[0], giuid);
     return 0;
+}
+
+int _DLLExport CreateFlatBuffersFileTest(const char* filename)
+{
+    return creagame(filename);
 }
 

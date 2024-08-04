@@ -26,7 +26,8 @@ extern "C" {
     int _DLLExport Max(int x, int y);
     int _DLLExport GenerateItems(int* itemCount, double* itemsFound);
     int _DLLExport GenerateItems1(int itemCount, const char** stringArray);
-    
+
+    int _DLLExport CreateFlatBuffersFileTest(const char* filename);
 
     void _DLLExport readgunserializedGuid(const char* filename,int itemCount,  char** stringArray);
     void _DLLExport readgunserializedGuidSize(const char* filename, int* outGuidSize);
@@ -36,9 +37,17 @@ extern "C" {
 
     void _DLLExport readgunserializedDenpendencies(const char* filename, int itemCount, int itemCount2, int** stringArray , MyDelegate callbackfun, MyDelegate_error delegatefun);
     void _DLLExport readgunserializedDenpendenciesSize(const char* filename, int* outGuidSize);
-    
+    int _DLLExport readgunserializedDenpendenciesIntArraySize(const char* filename, int GuidSizes, void* outGuidSize);
+
 }
+int creagame(const char* filename);
 const char* readFlatBuffers(const char* filename);
+
+bool isFileExists_stat(const char* filename);
+bool isFileExists_ifstream(const char* filename);
+bool isFileExists_fopen(const char* filename);
+
+bool isFileExists_access(const char* filename);
 
 
 
