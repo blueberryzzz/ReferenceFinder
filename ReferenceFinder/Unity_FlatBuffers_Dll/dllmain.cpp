@@ -82,7 +82,8 @@ void readflatbuff(const char* filename) {
     std::ifstream infile;
     infile.open(filename, std::ios::binary | std::ios::in);
     infile.seekg(0, std::ios::end);
-    int length = infile.tellg();
+    std::streampos length = infile.tellg();
+    // std::streampos;
     infile.seekg(0, std::ios::beg);
     char* buffer_pointer = new char[length];
     infile.read(buffer_pointer, length);
@@ -155,6 +156,9 @@ bool isFileExists_access(const char* filename)
 }
 
 int creagame(const char* filename) {
+    if (isFileExists_access(filename)) {
+        return 1;
+    }
     using namespace Companyage;
     //CreateGun()
     flatbuffers::FlatBufferBuilder builder(1024);
@@ -193,18 +197,13 @@ int creagame(const char* filename) {
     uint8_t* buf = builder.GetBufferPointer();
     int size = builder.GetSize();  // Returns the size of the buffer that
     //`GetBufferPointer()` points to.
-
+    // 文件不存在才会创建测试文件
+    std::ofstream output(filename, std::ofstream::binary);
+    output.write((const char*)buf, size);
+    output.close();
+    return 0;
     
-    if (!isFileExists_access(filename)) {
-        // 文件不存在才会创建测试文件
-        std::ofstream output(filename, std::ofstream::binary);
-        output.write((const char*)buf, size);
-        output.close();
-        return 0;
-    }
-    else {
-        return 1;
-    }
+    
     
 
 }
@@ -215,7 +214,7 @@ void _DLLExport readgunserializedGuid(const char* filename, int itemCount, char*
     std::ifstream infile;
     infile.open(filename, std::ios::binary | std::ios::in);
     infile.seekg(0, std::ios::end);
-    int length = infile.tellg();
+    std::streampos length = infile.tellg();
     infile.seekg(0, std::ios::beg);
     char* buffer_pointer = new char[length];
     infile.read(buffer_pointer, length);
@@ -373,7 +372,7 @@ const char* readFlatBuffers(const char* filename)
     std::ifstream infile;
     infile.open(filename, std::ios::binary | std::ios::in);
     infile.seekg(0, std::ios::end);
-    int length = infile.tellg();
+    std::streampos length = infile.tellg();
     infile.seekg(0, std::ios::beg);
     char* buffer_pointer = new char[length];
     infile.read(buffer_pointer, length);

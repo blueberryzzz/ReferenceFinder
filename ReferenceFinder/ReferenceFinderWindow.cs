@@ -4,14 +4,13 @@ using UnityEditor;
 using UnityEngine;
 using UnityEditor.IMGUI.Controls;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices;
 using System;
 using static UnityEngine.Rendering.DebugUI;
 using static UnityEditor.Progress;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-
+using static ReferenceFinderData;
 public class ReferenceFinderWindow : EditorWindow
 {
     //依赖模式的key
@@ -39,154 +38,14 @@ public class ReferenceFinderWindow : EditorWindow
     [SerializeField]
     private TreeViewState m_TreeViewState;
 
-    [DllImport("Unity_FlatBuffers_Dll")]
-    private static extern int Add(int x, int y, string b, List<string> bbbb);
-    [DllImport("Unity_FlatBuffers_Dll")]
-    private static extern int Max(int x, int y);
-
-    [DllImport("Unity_FlatBuffers_Dll")]
-    static  extern int GenerateItems(   IntPtr itemCount, IntPtr itemsFound);
-
-    [DllImport("Unity_FlatBuffers_Dll")]
-    static extern int GenerateItems1(int arrayLength,string[] stringArray );
-
-    [DllImport("Unity_FlatBuffers_Dll")]
-    static extern void readgunserializedGuid(string file, int arrayLength, IntPtr stringArray);
-
-    [DllImport("Unity_FlatBuffers_Dll")]
-    static extern void readgunserializedGuidSize(string file, IntPtr arrayLength);
-
-    [DllImport("Unity_FlatBuffers_Dll")]
-    static extern void readgunserializedDependencyHash(string file, int arrayLength, IntPtr stringArray);
-
-    [DllImport("Unity_FlatBuffers_Dll")]
-    static extern void readgunserializedDependencyHashSize(string file, IntPtr arrayLength);
-
-    [DllImport("Unity_FlatBuffers_Dll")]
-    static extern void readgunserializedDenpendencies(string file, int arrayLength, int itemCount2, IntPtr[] stringArray, IntPtr callbackfun, IntPtr delegatefun);
-
-    [DllImport("Unity_FlatBuffers_Dll")]
-    static extern void readgunserializedDenpendenciesSize(string file, IntPtr arrayLength);
-
-    [DllImport("Unity_FlatBuffers_Dll")]
-    static extern int readgunserializedDenpendenciesIntArraySize(string file, int GuidSizes, int[]  arrayLength);
-
-    [DllImport("Unity_FlatBuffers_Dll")]
-    static extern int CreateFlatBuffersFileTest(string file);
-
-    // 定义一个返回值的委托类型
-    public delegate int MyDelegate(int value);
+    
     //查找资源引用信息
     [MenuItem("Assets/Find References In Project %#&f", false, 25)]
-    static unsafe void test()
-    {
-        int cstsint = CreateFlatBuffersFileTest("xdfdf");
-        if (cstsint == 1)
-        {
-            Debug.Log("序列化文件已经存在");
-        }else if(cstsint == 0)
-        {
-            Debug.Log("序列化文件不存在");
-        }
-        int bs;
-        IntPtr dd = (IntPtr)(&bs);
-
-        // 创建字符串数组
-        string[] stringArray = new string[560000];
-
-        // 分配非托管内存
-        IntPtr unmanagedArray = Marshal.AllocHGlobal(IntPtr.Size * stringArray.Length);
-
-        // 调用C++函数
-        readgunserializedGuid("xdfdf", 10, unmanagedArray);
-        // FillStringArray(unmanagedArray, stringArray.Length);
-
-        // 从非托管内存中读取字符串
-        for (int i = 0; i < stringArray.Length; i++)
-        {
-            IntPtr strPtr = Marshal.ReadIntPtr(unmanagedArray, i * IntPtr.Size);
-            stringArray[i] = Marshal.PtrToStringAnsi(strPtr);
-            if (i == 0)
-            {
-                //Debug.Log(stringArray[i]);
-            }
-        }
-
-        // 创建一个委托实例
-        MyDelegate myDelegate = new MyDelegate(MyFunction);
-
-        // 获取委托的函数指针
-        IntPtr functionPointer = Marshal.GetFunctionPointerForDelegate(myDelegate);
-
-        // 释放非托管内存
-        Marshal.FreeHGlobal(unmanagedArray);
-
-        List<string> bbb = new List<string>();
-        bbb = stringArray.ToList();
-
-
-        int aba = 0;
-        IntPtr abaptr = (IntPtr)(&aba);
-        readgunserializedDenpendenciesSize("xdfdf", abaptr);
-
-        int[] bbbc = new int[aba]; 
-        int resvalue = readgunserializedDenpendenciesIntArraySize("xdfdf", aba, bbbc);
-
-
-        List<int[]> list = new List<int[]>();
-
-        for (int i = 0;i < aba; i++)
-        {
-            list.Add(new int[bbbc[i]]);
-            //list.Add(new int[0]);
-        }
-        // 转换为IntPtr  
-        IntPtr[] pointers = new IntPtr[list.Count];
-        for (int i = 0; i < list.Count; i++)
-        {
-            pointers[i] = Marshal.AllocHGlobal(list[i].Length * sizeof(int));
-            Marshal.Copy(list[i], 0, pointers[i], list[i].Length);
-        }
-        MyDelegate functest = new MyDelegate(MyFunction);
-        IntPtr functestptr = Marshal.GetFunctionPointerForDelegate(functest);
-
-        readgunserializedDenpendencies("xdfdf", aba, 1, pointers, functestptr, functestptr);
-
-
-        Marshal.Copy(pointers, 0, (IntPtr)((IntPtr)Marshal.AllocHGlobal(pointers.Length * sizeof(IntPtr))), pointers.Length);
-        // 读取修改后的数据  
-        for (int i = 0; i < list.Count; i++)
-        {
-            int[] modifiedArray = new int[list[i].Length];
-            Marshal.Copy(pointers[i], modifiedArray, 0, list[i].Length);
-            list[i] = modifiedArray;
-
-            // 清理内存  
-            Marshal.FreeHGlobal(pointers[i]);
-        }
-
-        // 输出修改后的数组  
-        foreach (int[] arr in list)
-        {
-            Debug.Log($"[{String.Join(", ", arr)}]");
-        }
-    }
-    public static int MyFunction(int value)
-    {
-        return value * 2;
-    }
     static void FindRef()
     {
-       
-            //Add(1, 2);
-         Debug.Log("xxxxxx"); 
+      
         
-        List<string> liststr = new List<string>();
-        liststr.Add("bbbbb");
-        liststr.ToArray();
-
-        // Debug.Log("xxxxxx Start  " + Add(1, 2, "xxxxx", liststr));
-        Debug.Log("xxxxxx Start  " + Max(1, 2));
+        
         InitDataIfNeeded();
         OpenWindow();
         ReferenceFinderWindow window = GetWindow<ReferenceFinderWindow>();

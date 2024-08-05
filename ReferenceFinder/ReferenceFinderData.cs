@@ -3,16 +3,57 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.InteropServices;
 using UnityEditor;
 using UnityEngine;
+using Unity.Burst.Intrinsics;
 
 public class ReferenceFinderData
 {
     //缓存路径
-    private const string CACHE_PATH = "Library/ReferenceFinderCache";
+    private const string CACHE_PATH = "xdfdf";
+    private const string Csss = "Library/ReferenceFinderCache";
     private const string CACHE_VERSION = "V1";
     //资源引用信息字典
-    public Dictionary<string, AssetDescription> assetDict = new Dictionary<string, AssetDescription>();    
+    public Dictionary<string, AssetDescription> assetDict = new Dictionary<string, AssetDescription>();
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    private static extern int Add(int x, int y, string b, List<string> bbbb);
+    [DllImport("Unity_FlatBuffers_Dll")]
+    private static extern int Max(int x, int y);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern int GenerateItems(IntPtr itemCount, IntPtr itemsFound);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern int GenerateItems1(int arrayLength, string[] stringArray);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern void readgunserializedGuid(string file, int arrayLength, IntPtr stringArray);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern void readgunserializedGuidSize(string file, IntPtr arrayLength);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern void readgunserializedDependencyHash(string file, int arrayLength, IntPtr stringArray);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern void readgunserializedDependencyHashSize(string file, IntPtr arrayLength);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern void readgunserializedDenpendencies(string file, int arrayLength, int itemCount2, IntPtr[] stringArray, IntPtr callbackfun, IntPtr delegatefun);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern void readgunserializedDenpendenciesSize(string file, IntPtr arrayLength);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern int readgunserializedDenpendenciesIntArraySize(string file, int GuidSizes, int[] arrayLength);
+
+    [DllImport("Unity_FlatBuffers_Dll")]
+    static extern int CreateFlatBuffersFileTest(string file);
+
+    // 定义一个返回值的委托类型
+    public delegate int MyDelegate(int value);
 
     //收集资源引用信息并更新缓存
     public void CollectDependenciesInfo()
@@ -98,7 +139,7 @@ public class ReferenceFinderData
     }
 
     //读取缓存信息
-    public bool ReadFromCache()
+    public unsafe bool ReadFromCache()
     {
         assetDict.Clear();
         if (!File.Exists(CACHE_PATH))
@@ -110,20 +151,128 @@ public class ReferenceFinderData
         var serializedDependencyHash = new List<string>();
         var serializedDenpendencies = new List<int[]>();
         //反序列化数据
-        FileStream fs = File.OpenRead(CACHE_PATH);
+        //FileStream fs = File.OpenRead(CACHE_PATH);
         try
         {
-            BinaryFormatter bf = new BinaryFormatter();
-            string cacheVersion = (string) bf.Deserialize(fs);
-            if (cacheVersion != CACHE_VERSION)
-            {
-                return false;
-            }
+            //BinaryFormatter bf = new BinaryFormatter();
+           // string cacheVersion = (string) bf.Deserialize(fs);
+            //if (cacheVersion != CACHE_VERSION)
+           // {
+                //return false;
+           // }
 
             EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache", 0);
-            serializedGuid = (List<string>) bf.Deserialize(fs);
-            serializedDependencyHash = (List<string>) bf.Deserialize(fs);
-            serializedDenpendencies = (List<int[]>) bf.Deserialize(fs);
+            //serializedGuid = (List<string>) bf.Deserialize(fs);
+            //serializedDependencyHash = (List<string>) bf.Deserialize(fs);
+            //serializedDenpendencies = (List<int[]>) bf.Deserialize(fs);
+
+
+            int cstsint = CreateFlatBuffersFileTest(CACHE_PATH);
+            EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache 0.1 ", 0.1f);
+            if (cstsint == 1)
+            {
+                Debug.Log("序列化文件已经存在");
+            }
+            else if (cstsint == 0)
+            {
+                Debug.Log("序列化文件不存在");
+            }
+            int bs;
+            IntPtr dd = (IntPtr)(&bs);
+            readgunserializedGuidSize(CACHE_PATH, dd);
+            EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache 0.3", 0.3f);
+            // 创建字符串数组
+            string[] stringArray = new string[bs];
+             // 分配非托管内存
+             IntPtr unmanagedArray = Marshal.AllocHGlobal(IntPtr.Size * stringArray.Length);
+
+            // 调用C++函数
+            readgunserializedGuid(CACHE_PATH, bs, unmanagedArray);
+            EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache 0.4 ", 0.4f);
+
+            // 从非托管内存中读取字符串
+            for (int i = 0; i < stringArray.Length; i++)
+            {
+                IntPtr strPtr = Marshal.ReadIntPtr(unmanagedArray, i * IntPtr.Size);
+                stringArray[i] = Marshal.PtrToStringAnsi(strPtr);
+                
+            }
+            List<string> bbb = new List<string>();
+            serializedGuid = stringArray.ToList();
+            // 释放非托管内存
+            Marshal.FreeHGlobal(unmanagedArray);
+            int DependencyHashSize = 0;
+            IntPtr DependencyHashSizeptr = (IntPtr)(&DependencyHashSize);
+            readgunserializedDependencyHashSize(CACHE_PATH, DependencyHashSizeptr);
+            EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache .0.5", 0.5f);
+            // 创建字符串数组
+            string[] DependencyHasheArray = new string[DependencyHashSize];
+            // 分配非托管内存
+            IntPtr DependencyHasheArrayPtr = Marshal.AllocHGlobal(IntPtr.Size * stringArray.Length);
+            readgunserializedDependencyHash(CACHE_PATH, DependencyHashSize, DependencyHasheArrayPtr);
+            // 从非托管内存中读取字符串
+            for (int i = 0; i < DependencyHasheArray.Length; i++)
+            {
+                IntPtr strPtr = Marshal.ReadIntPtr(DependencyHasheArrayPtr, i * IntPtr.Size);
+                DependencyHasheArray[i] = Marshal.PtrToStringAnsi(strPtr);
+
+            }
+            serializedDependencyHash = DependencyHasheArray.ToList();
+            // 释放非托管内存
+            Marshal.FreeHGlobal(DependencyHasheArrayPtr);
+
+
+
+
+            int aba = 0;
+            IntPtr abaptr = (IntPtr)(&aba);
+            EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache 0.6", 0.6f);
+            readgunserializedDenpendenciesSize(CACHE_PATH, abaptr);
+            
+            int[] bbbc = new int[aba];
+            int resvalue = readgunserializedDenpendenciesIntArraySize(CACHE_PATH, aba, bbbc);
+
+
+            List<int[]> list = new List<int[]>();
+
+            for (int i = 0; i < aba; i++)
+            {
+                list.Add(new int[bbbc[i]]);
+                //list.Add(new int[0]);
+            }
+            // 转换为IntPtr  
+            IntPtr[] pointers = new IntPtr[list.Count];
+            for (int i = 0; i < list.Count; i++)
+            {
+                pointers[i] = Marshal.AllocHGlobal(list[i].Length * sizeof(int));
+                Marshal.Copy(list[i], 0, pointers[i], list[i].Length);
+            }
+
+            
+            MyDelegate functest = new MyDelegate(MyFunction);
+            IntPtr functestptr = Marshal.GetFunctionPointerForDelegate(functest);
+            EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache", 0.7f);
+            readgunserializedDenpendencies(CACHE_PATH, aba, 1, pointers, functestptr, functestptr);
+
+
+            Marshal.Copy(pointers, 0, (IntPtr)((IntPtr)Marshal.AllocHGlobal(pointers.Length * sizeof(IntPtr))), pointers.Length);
+            // 读取修改后的数据  
+            for (int i = 0; i < list.Count; i++)
+            {
+                int[] modifiedArray = new int[list[i].Length];
+                Marshal.Copy(pointers[i], modifiedArray, 0, list[i].Length);
+                list[i] = modifiedArray;
+
+                // 清理内存  
+                Marshal.FreeHGlobal(pointers[i]);
+            }
+            serializedDenpendencies = list;
+            // 输出修改后的数组  
+            //foreach (int[] arr in list)
+            //{
+                // Debug.Log($"[{String.Join(", ", arr)}]");
+            //}
+
             EditorUtility.ClearProgressBar();
         }
         catch
@@ -133,7 +282,7 @@ public class ReferenceFinderData
         }
         finally
         {
-            fs.Close();
+            //fs.Close();
         }
 
         for (int i = 0; i < serializedGuid.Count; ++i)
@@ -158,6 +307,9 @@ public class ReferenceFinderData
                     Select(index => serializedGuid[index]).
                     Where(g => assetDict.ContainsKey(g)).
                     ToList();
+                // 这里太慢了？
+                //Debug.Log($"[{String.Join(", ", guids)}]");
+                
                 assetDict[guid].dependencies = guids;
             }
         }
@@ -202,7 +354,12 @@ public class ReferenceFinderData
             bf.Serialize(fs, serializedDenpendencies);
         }
     }
-    
+
+    public static int MyFunction(int value)
+    {
+        return value * 2;
+    }
+
     //更新引用信息状态
     public void UpdateAssetState(string guid)
     {
