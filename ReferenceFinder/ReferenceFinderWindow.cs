@@ -379,7 +379,12 @@ public class ReferenceFinderWindow : EditorWindow
             updatedAssetSet.Add(guid);
         }        
         ++elementCount;
-        var referenceData = data.assetDict[guid];
+        var referenceData = new AssetDescription();
+        if(data.assetDict.ContainsKey(guid))
+        {
+             referenceData = data.assetDict[guid];
+        }
+        
         var root = new AssetViewItem { id = elementCount, displayName = referenceData.name, data = referenceData, depth = _depth };
         var childGuids = isDepend ? referenceData.dependencies : referenceData.references;
         foreach (var childGuid in childGuids)
