@@ -297,12 +297,12 @@ void _DLLExport readgunserializedDenpendencies(const char* filename, int itemCou
         auto vlueas = net->serializedDenpendencies()->Get(i)->values();
         if (vlueas) {
             
-           // memcpy(stringArray[i], vlueas->data(), vlueas->size());
+            memcpy(stringArray[i], vlueas->data(), vlueas->size()*sizeof(int32_t));
 
 
-            for (int j = 0; j < vlueas->size(); j++) {
-                stringArray[i][j] =  vlueas->Get(j);
-            }
+            //for (int j = 0; j < vlueas->size(); j++) {
+              //  stringArray[i][j] =  vlueas->Get(j);
+           // }
             
         }
     }
