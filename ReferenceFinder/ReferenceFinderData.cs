@@ -50,7 +50,7 @@ public class ReferenceFinderData
     static extern int readgunserializedDenpendenciesIntArraySize(string file, int GuidSizes, int[] arrayLength);
 
     [DllImport("Unity_FlatBuffers_Dll")]
-    static extern int CreateFlatBuffersFileTest(string file);
+    static extern int CreateFlatBuffersFileTest(string file，bool isCreateFile);
 
     // 定义一个返回值的委托类型
     public delegate int MyDelegate(int value);
@@ -167,7 +167,7 @@ public class ReferenceFinderData
             //serializedDenpendencies = (List<int[]>) bf.Deserialize(fs);
 
 
-            int cstsint = CreateFlatBuffersFileTest(CACHE_PATH);
+            int cstsint = CreateFlatBuffersFileTest(CACHE_PATH,false);
             EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache 0.1 ", 0.1f);
             if (cstsint == 1)
             {
