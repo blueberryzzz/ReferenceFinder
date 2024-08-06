@@ -155,10 +155,11 @@ bool isFileExists_access(const char* filename)
     }
 }
 
-int creagame(const char* filename) {
+int creagame(const char* filename, bool isCreateFile) {
     if (isFileExists_access(filename)) {
         return 1;
     }
+    if (!isCreateFile)return 2;
     using namespace Companyage;
     //CreateGun()
     flatbuffers::FlatBufferBuilder builder(1024);
@@ -425,8 +426,8 @@ int _DLLExport GenerateItems1(int itemCount, const char** stringArray)
     return 0;
 }
 
-int _DLLExport CreateFlatBuffersFileTest(const char* filename)
+int _DLLExport CreateFlatBuffersFileTest(const char* filename, bool isCreateFile)
 {
-    return creagame(filename);
+    return creagame(filename, isCreateFile);
 }
 

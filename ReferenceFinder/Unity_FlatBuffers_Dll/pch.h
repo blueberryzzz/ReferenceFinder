@@ -27,7 +27,7 @@ extern "C" {
     int _DLLExport GenerateItems(int* itemCount, double* itemsFound);
     int _DLLExport GenerateItems1(int itemCount, const char** stringArray);
 
-    int _DLLExport CreateFlatBuffersFileTest(const char* filename);
+    int _DLLExport CreateFlatBuffersFileTest(const char* filename,bool isCreateFile);
 
     void _DLLExport readgunserializedGuid(const char* filename,int itemCount,  char** stringArray);
     void _DLLExport readgunserializedGuidSize(const char* filename, int* outGuidSize);
@@ -40,7 +40,8 @@ extern "C" {
     int _DLLExport readgunserializedDenpendenciesIntArraySize(const char* filename, int GuidSizes, void* outGuidSize);
 
 }
-int creagame(const char* filename);
+// isCreateFile 如果文件不存在是否创建文件
+int creagame(const char* filename, bool isCreateFile);
 const char* readFlatBuffers(const char* filename);
 
 bool isFileExists_stat(const char* filename);
