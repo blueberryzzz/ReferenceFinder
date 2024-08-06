@@ -313,6 +313,7 @@ public class ReferenceFinderData
                 assetDict[guid].dependencies = guids;
             }
         }
+        //  后面也很慢
         UpdateReferenceInfo();
         return true;
     }
