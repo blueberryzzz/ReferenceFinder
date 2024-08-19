@@ -68,7 +68,7 @@ public class ReferenceFinderData
     //生成并加入引用信息
     private void ImportAsset(string path)
     {
-        if (!path.StartsWith("Assets/"))
+        if (!path.StartsWith("Assets/") && !path.StartsWith("Packages/"))
             return;
 
         //通过path获取guid进行储存
