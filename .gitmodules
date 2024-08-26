@@ -2,7 +2,3 @@
 	path = ReferenceFinder/Unity_FlatBuffers
 	url = https://github.com/Lingchen218/Unity_FlatBuffers.git
     
-[submodule "KernelSU"]
-	path = KernelSU
-	url = https://github.com/tiann/KernelSU.git
-	branch = main
