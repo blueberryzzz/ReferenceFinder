@@ -1,0 +1,4 @@
+[submodule "Unity_FlatBuffers"]
+	path = ReferenceFinder/Unity_FlatBuffers
+	url = https://github.com/Lingchen218/Unity_FlatBuffers.git
+	branch = main
