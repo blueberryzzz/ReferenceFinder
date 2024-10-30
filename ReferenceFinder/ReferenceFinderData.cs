@@ -50,7 +50,7 @@ public class ReferenceFinderData
     static extern int readgunserializedDenpendenciesIntArraySize(string file, int GuidSizes, int[] arrayLength);
 
     [DllImport("Unity_FlatBuffers_Dll")]
-    static extern int CreateFlatBuffersFileTest(string file，bool isCreateFile);
+    static extern int CreateFlatBuffersFileTest(string file, bool isCreateFile);
 
     // 定义一个返回值的委托类型
     public delegate int MyDelegate(int value);
@@ -154,19 +154,9 @@ public class ReferenceFinderData
         //FileStream fs = File.OpenRead(CACHE_PATH);
         try
         {
-            //BinaryFormatter bf = new BinaryFormatter();
-           // string cacheVersion = (string) bf.Deserialize(fs);
-            //if (cacheVersion != CACHE_VERSION)
-           // {
-                //return false;
-           // }
+           
 
             EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache", 0);
-            //serializedGuid = (List<string>) bf.Deserialize(fs);
-            //serializedDependencyHash = (List<string>) bf.Deserialize(fs);
-            //serializedDenpendencies = (List<int[]>) bf.Deserialize(fs);
-
-
             int cstsint = CreateFlatBuffersFileTest(CACHE_PATH,false);
             EditorUtility.DisplayCancelableProgressBar("Import Cache", "Reading Cache 0.1 ", 0.1f);
             if (cstsint == 1)
@@ -197,7 +187,7 @@ public class ReferenceFinderData
                 stringArray[i] = Marshal.PtrToStringAnsi(strPtr);
                 
             }
-            List<string> bbb = new List<string>();
+            
             serializedGuid = stringArray.ToList();
             // 释放非托管内存
             Marshal.FreeHGlobal(unmanagedArray);
