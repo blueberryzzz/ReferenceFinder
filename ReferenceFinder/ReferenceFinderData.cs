@@ -94,7 +94,7 @@ public class ReferenceFinderData
             UpdateReferenceInfo();
             timeB = DateTime.Now;	//获取当前时间
             time = (timeB - timeA).TotalSeconds.ToString();	//将时间差转换为秒
-            Debug.Log(string.Format(" UpdateReferenceInfo 用时{0}秒 " , time));
+            Debug.Log(string.Format(" CollectDependenciesInfo UpdateReferenceInfo 用时{0}秒 ", time));
             
             EditorUtility.ClearProgressBar();
         }
@@ -294,6 +294,7 @@ public class ReferenceFinderData
         Debug.Log(string.Format(" ReadFromCache内部部分调用1 用时{0}秒 " , time));
 
         timeA = DateTime.Now;	//获取当前时间
+        
         for (int i = 0; i < serializedGuid.Count; ++i)
         {
             string path = AssetDatabase.GUIDToAssetPath(serializedGuid[i]);
@@ -316,17 +317,22 @@ public class ReferenceFinderData
                     Select(index => serializedGuid[index]).
                     Where(g => assetDict.ContainsKey(g)).
                     ToList();
-                // 这里太慢了？
-                //Debug.Log($"[{String.Join(", ", guids)}]");
                 
                 assetDict[guid].dependencies = guids;
             }
         }
+        timeB = DateTime.Now;   //获取当前时间
+
+        time = (timeB - timeA).TotalSeconds.ToString();	//将时间差转换为秒
+        Debug.Log(string.Format(" ReadFromCache内部部分调用2 用时{0}秒 ", time));
+
+        timeA = DateTime.Now;	//获取当前时间
         //  后面也很慢
         UpdateReferenceInfo();
-        timeB = DateTime.Now;	//获取当前时间
-        time = (timeB - timeA).TotalSeconds.ToString();	//将时间差转换为秒
-        Debug.Log(string.Format(" ReadFromCache内部部分调用2 用时{0}秒 " , time));
+        timeB = DateTime.Now;   //获取当前时间
+        time = (timeB - timeA).TotalSeconds.ToString(); //将时间差转换为秒
+        Debug.Log(string.Format(" ReadFromCache 中的 UpdateReferenceInfo 用时{0}秒 ", time));
+
         return true;
     }
 
