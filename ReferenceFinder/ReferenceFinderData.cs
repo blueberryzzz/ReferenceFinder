@@ -62,7 +62,14 @@ public class ReferenceFinderData
         try
         {          
             ReadFromCache();
+            
+            DateTime timeA = DateTime.Now;	//获取当前时间
             var allAssets = AssetDatabase.GetAllAssetPaths();
+            DateTime timeB = DateTime.Now;	//获取当前时间
+            TimeSpan ts = timeB - timeA;	//计算时间差
+            string time = ts.TotalSeconds.ToString();	//将时间差转换为秒
+            Debug.Log(string.Format(" AssetDatabase.GetAllAssetPaths() 用时{0}秒 " , time));
+            
             int totalCount = allAssets.Length;
             for (int i = 0; i < allAssets.Length; i++)
             {
@@ -82,7 +89,13 @@ public class ReferenceFinderData
             WriteToChache();
             //生成引用数据
             EditorUtility.DisplayCancelableProgressBar("Refresh", "Generating asset reference info", 1f);
+            
+            timeA = DateTime.Now;	//获取当前时间
             UpdateReferenceInfo();
+            timeB = DateTime.Now;	//获取当前时间
+            time = (timeB - timeA).TotalSeconds.ToString();	//将时间差转换为秒
+            Debug.Log(string.Format(" UpdateReferenceInfo 用时{0}秒 " , time));
+            
             EditorUtility.ClearProgressBar();
         }
         catch(Exception e)
@@ -142,6 +155,7 @@ public class ReferenceFinderData
     //读取缓存信息
     public unsafe bool ReadFromCache()
     {
+        DateTime timeA = DateTime.Now;	//获取当前时间
         assetDict.Clear();
         if (!File.Exists(CACHE_PATH))
         {
@@ -275,7 +289,11 @@ public class ReferenceFinderData
         {
             //fs.Close();
         }
+        DateTime timeB = DateTime.Now;	//获取当前时间
+        string time = (timeB - timeA).TotalSeconds.ToString();	//将时间差转换为秒
+        Debug.Log(string.Format(" ReadFromCache内部部分调用1 用时{0}秒 " , time));
 
+        timeA = DateTime.Now;	//获取当前时间
         for (int i = 0; i < serializedGuid.Count; ++i)
         {
             string path = AssetDatabase.GUIDToAssetPath(serializedGuid[i]);
@@ -306,6 +324,9 @@ public class ReferenceFinderData
         }
         //  后面也很慢
         UpdateReferenceInfo();
+        timeB = DateTime.Now;	//获取当前时间
+        time = (timeB - timeA).TotalSeconds.ToString();	//将时间差转换为秒
+        Debug.Log(string.Format(" ReadFromCache内部部分调用2 用时{0}秒 " , time));
         return true;
     }
 
