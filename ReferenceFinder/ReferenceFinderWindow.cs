@@ -243,7 +243,7 @@ public class ReferenceFinderWindow : EditorWindow
         {
              referenceData = data.assetDict[guid];
         }else{
-            referenceData.name = "kongde ";
+            referenceData.name = "未收集该资源信息";
         }
         
         var root = new AssetViewItem { id = elementCount, displayName = referenceData.name, data = referenceData, depth = _depth };
