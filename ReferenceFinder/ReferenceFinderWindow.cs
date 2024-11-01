@@ -242,6 +242,8 @@ public class ReferenceFinderWindow : EditorWindow
         if(data.assetDict.ContainsKey(guid))
         {
              referenceData = data.assetDict[guid];
+        }else{
+            referenceData.name = "kongde ";
         }
         
         var root = new AssetViewItem { id = elementCount, displayName = referenceData.name, data = referenceData, depth = _depth };
