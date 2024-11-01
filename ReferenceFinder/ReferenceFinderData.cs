@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
+//using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.InteropServices;
 using UnityEditor;
 using UnityEngine;
-using Unity.Burst.Intrinsics;
+//using Unity.Burst.Intrinsics;
+using FlatBuffers;
 
 public class ReferenceFinderData
 {
