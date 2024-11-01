@@ -320,30 +320,70 @@ public class ReferenceFinderData
         //辅助映射字典
         var guidIndex = new Dictionary<string, int>();
         //序列化
-        using (FileStream fs = File.OpenWrite(CACHE_PATH))
-        {
-            foreach (var pair in assetDict)
+        foreach (var pair in assetDict)
             {
                 guidIndex.Add(pair.Key, guidIndex.Count);
                 serializedGuid.Add(pair.Key);
                 serializedDependencyHash.Add(pair.Value.assetDependencyHash);
             }
 
-            foreach(var guid in serializedGuid)
+            var builder = new FlatBufferBuilder(1);
+            var insss = new Offset<Companyage.IntArray>[serializedGuid.Count];
+            int indexx = 0;
+
+            foreach (var guid in serializedGuid)
             {
-                //使用 Where 子句过滤目录
-                int[] indexes = assetDict[guid].dependencies.
-                    Where(s => guidIndex.ContainsKey(s)).
-                    Select(s => guidIndex[s]).ToArray();
+
+                int[] indexes = assetDict[guid].dependencies.Select(s => guidIndex.ContainsKey(s) ? guidIndex[s] : 0)
+                    .ToArray();
                 serializedDenpendencies.Add(indexes);
+
+                // 创建一个IntArray对象
+                // var intArrayValues = new int[] { 1, 2, 3 };
+                var intArrayOffset = Companyage.IntArray.CreateValuesVector(builder, indexes);
+                var intArray = Companyage.IntArray.CreateIntArray(builder, intArrayOffset);
+                insss[indexx] = intArray;
+                indexx++;
             }
 
-            BinaryFormatter bf = new BinaryFormatter();
-            bf.Serialize(fs, CACHE_VERSION);
-            bf.Serialize(fs, serializedGuid);
-            bf.Serialize(fs, serializedDependencyHash);
-            bf.Serialize(fs, serializedDenpendencies);
-        }
+            
+            // 创建一个Gun对象
+            var serializedGuids = serializedGuid.ToArray();
+
+            var serializedGuidOffsets = new StringOffset[serializedGuids.Length];
+            for (int i = 0; i < serializedGuids.Length; i++)
+            {
+                serializedGuidOffsets[i] = builder.CreateString(serializedGuids[i]);
+            }
+
+            var serializedGuidVector = Companyage.Gun.CreateSerializedGuidVector(builder, serializedGuidOffsets);
+
+            var serializedDependencyHashes = serializedDependencyHash.ToArray();
+
+            var serializedDependencyHashOffsets = new StringOffset[serializedDependencyHashes.Length];
+            for (int i = 0; i < serializedDependencyHashes.Length; i++)
+            {
+                serializedDependencyHashOffsets[i] = builder.CreateString(serializedDependencyHashes[i]);
+            }
+
+            var serializedDependencyHashVector =
+                Companyage.Gun.CreateSerializedDependencyHashVector(builder, serializedDependencyHashOffsets);
+
+
+
+
+
+            var serializedDenpendenciesOffset = Companyage.Gun.CreateSerializedDenpendenciesVector(builder, insss);
+
+            var gun = Companyage.Gun.CreateGun(builder, serializedGuidVector, serializedDependencyHashVector,
+                serializedDenpendenciesOffset);
+
+            // 完成并获取字节数据
+            builder.Finish(gun.Value);
+            byte[] data = builder.SizedByteArray();
+
+            // 保存数据
+            System.IO.File.WriteAllBytes(CACHE_PATH, data);
     }
 
     public static int MyFunction(int value)
