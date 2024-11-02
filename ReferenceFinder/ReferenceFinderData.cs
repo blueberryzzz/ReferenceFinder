@@ -282,8 +282,9 @@ public class ReferenceFinderData
 
             EditorUtility.ClearProgressBar();
         }
-        catch
+        catch(Exception e) 
         {
+            Debug.LogException(e);
             //兼容旧版本序列化格式
             return false;
         }
