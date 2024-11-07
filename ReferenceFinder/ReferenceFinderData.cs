@@ -484,7 +484,7 @@ public class ReferenceFinderData
         public string path = "";
         public string assetDependencyHash;
         public List<string> dependencies = new List<string>();
-        public List<string> references = new List<string>();
+        public HashSet<string> references = new HashSet<string>();
         public AssetState state = AssetState.NORMAL;
     }
 

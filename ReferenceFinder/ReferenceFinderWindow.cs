@@ -31,7 +31,7 @@ public class ReferenceFinderWindow : EditorWindow
     //工具栏样式
     private GUIStyle toolbarGUIStyle;
     //选中资源列表
-    private List<string> selectedAssetGuid = new List<string>();    
+    private HashSet<string> selectedAssetGuid = new HashSet<string>();    
 
     private AssetTreeView m_AssetTreeView;
 
@@ -209,7 +209,7 @@ public class ReferenceFinderWindow : EditorWindow
     //生成root相关
     private HashSet<string> updatedAssetSet = new HashSet<string>();
     //通过选择资源列表生成TreeView的根节点
-    private  AssetViewItem SelectedAssetGuidToRootItem(List<string> selectedAssetGuid)
+    private  AssetViewItem SelectedAssetGuidToRootItem(HashSet<string> selectedAssetGuid)
     {
         updatedAssetSet.Clear();
         int elementCount = 0;
@@ -243,17 +243,32 @@ public class ReferenceFinderWindow : EditorWindow
         {
              referenceData = data.assetDict[guid];
         }else{
-            referenceData.name = "未收集该资源信息";
+            return null;
+            
         }
         
         var root = new AssetViewItem { id = elementCount, displayName = referenceData.name, data = referenceData, depth = _depth };
-        var childGuids = isDepend ? referenceData.dependencies : referenceData.references;
-        foreach (var childGuid in childGuids)
+        if (isDepend)
         {
-            var child = CreateTree(childGuid, ref elementCount, _depth + 1, stack);
-            if (child != null)
-                root.AddChild(child);
+            foreach (var childGuid in referenceData.dependencies)
+            {
+                var child = CreateTree(childGuid, ref elementCount, _depth + 1, stack);
+                if (child != null)
+                    root.AddChild(child);
+            }
         }
+        else
+        {
+            foreach (var childGuid in referenceData.references)
+            {
+                var child = CreateTree(childGuid, ref elementCount, _depth + 1, stack);
+                if (child != null)
+                    root.AddChild(child);
+            }
+        }
+        
+
+        
 
         stack.Pop();
         return root;
