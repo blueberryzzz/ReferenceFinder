@@ -209,68 +209,76 @@ public class ReferenceFinderWindow : EditorWindow
     //生成root相关
     private HashSet<string> updatedAssetSet = new HashSet<string>();
     //通过选择资源列表生成TreeView的根节点
-    private  AssetViewItem SelectedAssetGuidToRootItem(HashSet<string> selectedAssetGuid)
+    private AssetViewItem SelectedAssetGuidToRootItem(HashSet<string> selectedAssetGuid)
     {
         updatedAssetSet.Clear();
         int elementCount = 0;
         var root = new AssetViewItem { id = elementCount, depth = -1, displayName = "Root", data = null };
         int depth = 0;
-        var stack = new Stack<string>();
+        var stack = new Stack<Tuple<string, int>>();
+        var processed = new HashSet<string>(); // 记录已处理的节点
+        var memo = new Dictionary<string, AssetViewItem>(); // 记忆化缓存
+
         foreach (var childGuid in selectedAssetGuid)
         {
-            var child = CreateTree(childGuid, ref elementCount, depth, stack);
-            if (child != null)
-                root.AddChild(child);
+            stack.Push(new Tuple<string, int>(childGuid, depth));
         }
+
+        while (stack.Count > 0)
+        {
+            var current = stack.Pop();
+            if (!processed.Contains(current.Item1))
+            {
+                processed.Add(current.Item1);
+                var child = CreateTree(current.Item1, ref elementCount, current.Item2, stack, processed, memo);
+                if (child != null)
+                    root.AddChild(child);
+            }
+        }
+
         updatedAssetSet.Clear();
         return root;
     }
-    //通过每个节点的数据生成子节点
-    private  AssetViewItem CreateTree(string guid, ref int elementCount, int _depth, Stack<string> stack)
-    {
-        if (stack.Contains(guid))
-            return null;
 
-        stack.Push(guid);
+    private AssetViewItem CreateTree(string guid, ref int elementCount, int _depth, Stack<Tuple<string, int>> stack, HashSet<string> processed, Dictionary<string, AssetViewItem> memo)
+    {
+        if (memo.ContainsKey(guid))
+            return memo[guid];
+
         if (needUpdateState && !updatedAssetSet.Contains(guid))
         {
             data.UpdateAssetState(guid);
             updatedAssetSet.Add(guid);
-        }        
+        }
         ++elementCount;
         var referenceData = new AssetDescription();
-        if(data.assetDict.ContainsKey(guid))
+        if (data.assetDict.ContainsKey(guid))
         {
-             referenceData = data.assetDict[guid];
-        }else{
-            return null;
-            
+            referenceData = data.assetDict[guid];
         }
-        
+        else
+        {
+            return null;
+        }
+
         var root = new AssetViewItem { id = elementCount, displayName = referenceData.name, data = referenceData, depth = _depth };
+        memo[guid] = root; // 缓存当前节点
+
         if (isDepend)
         {
             foreach (var childGuid in referenceData.dependencies)
             {
-                var child = CreateTree(childGuid, ref elementCount, _depth + 1, stack);
-                if (child != null)
-                    root.AddChild(child);
+                stack.Push(new Tuple<string, int>(childGuid, _depth + 1));
             }
         }
         else
         {
             foreach (var childGuid in referenceData.references)
             {
-                var child = CreateTree(childGuid, ref elementCount, _depth + 1, stack);
-                if (child != null)
-                    root.AddChild(child);
+                stack.Push(new Tuple<string, int>(childGuid, _depth + 1));
             }
         }
-        
 
-        
-
-        stack.Pop();
         return root;
     }
 }
