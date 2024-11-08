@@ -304,7 +304,12 @@ public class ReferenceFinderData
             if (!string.IsNullOrEmpty(path))
             {
                 var ad = new AssetDescription();
-                ad.name = Path.GetFileNameWithoutExtension(path);
+                
+                String [] paths = path.Split('/');
+                if(paths.Length > 1)
+                {
+                    ad.name = paths[paths.Length - 1] ;
+                }
                 ad.path = path;
                 ad.assetDependencyHash = serializedDependencyHash[i];
                 assetDict.Add(serializedGuid[i], ad);
