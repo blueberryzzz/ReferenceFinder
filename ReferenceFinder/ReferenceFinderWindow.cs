@@ -103,11 +103,12 @@ public class ReferenceFinderWindow : EditorWindow
                 string[] guids = AssetDatabase.FindAssets(null, folder);
                 foreach(var guid in guids)
                 {
-                    if (!selectedAssetGuid.Contains(guid) &&
+                    if (
                         !Directory.Exists(AssetDatabase.GUIDToAssetPath(guid)))
                     {
                         selectedAssetGuid.Add(guid);
-                    }                        
+                    } 
+                    // Directory.Exists .net 3.5 大量计算后比较耗时，高版本的.net 没有试过 
                 }
             }
             //如果是文件资源
@@ -251,7 +252,7 @@ public class ReferenceFinderWindow : EditorWindow
             updatedAssetSet.Add(guid);
         }
         ++elementCount;
-        var referenceData = new AssetDescription();
+        AssetDescription referenceData = null;
         if (data.assetDict.ContainsKey(guid))
         {
             referenceData = data.assetDict[guid];
