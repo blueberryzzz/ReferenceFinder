@@ -103,11 +103,26 @@ public class ReferenceFinderWindow : EditorWindow
                 string[] guids = AssetDatabase.FindAssets(null, folder);
                 foreach(var guid in guids)
                 {
-                    if (
-                        !Directory.Exists(AssetDatabase.GUIDToAssetPath(guid)))
+                   
+                    // 默认认为  文件夹名称没有点 
+                    string path_full = AssetDatabase.GUIDToAssetPath(guid);
+                    int dian_index = 0,fen_index = 0;
+                    for (int str_index = path_full.Length-1; str_index >= 0; str_index--)
                     {
-                        selectedAssetGuid.Add(guid);
-                    } 
+                        if (dian_index == 0 && path_full[str_index] == '.'  )
+                        {
+                            dian_index = str_index;
+                        }
+                        if(path_full[str_index] == '/')
+                        {
+                            fen_index = str_index;
+                            if(dian_index != 0)
+                            {
+                                selectedAssetGuid.Add(guid);
+                            } 
+                            break;
+                        }
+                    }
                     // Directory.Exists .net 3.5 大量计算后比较耗时，高版本的.net 没有试过 
                 }
             }
