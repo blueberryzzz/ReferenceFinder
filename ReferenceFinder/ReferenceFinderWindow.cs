@@ -283,20 +283,13 @@ public class ReferenceFinderWindow : EditorWindow
 
         var root = new AssetViewItem { id = elementCount, displayName = referenceData.name, data = referenceData, depth = _depth };
         memo[guid] = root; // 缓存当前节点
+        
 
-        if (isDepend)
+        var childGuids = isDepend ? referenceData.dependencies : referenceData.references;
+        foreach (var childGuid in childGuids)
         {
-            foreach (var childGuid in referenceData.dependencies)
-            {
-                stack.Push(new Tuple<string, int>(childGuid, _depth + 1));
-            }
-        }
-        else
-        {
-            foreach (var childGuid in referenceData.references)
-            {
-                stack.Push(new Tuple<string, int>(childGuid, _depth + 1));
-            }
+            //var child = CreateTree(childGuid, ref elementCount, _depth + 1, stack);
+            stack.Push(new Tuple<string, int>(childGuid, _depth + 1));
         }
 
         return root;
