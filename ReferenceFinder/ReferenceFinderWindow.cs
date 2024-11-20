@@ -151,10 +151,14 @@ public class ReferenceFinderWindow : EditorWindow
                 var multiColumnHeader = new MultiColumnHeader(headerState);
                 m_AssetTreeView = new AssetTreeView(m_TreeViewState, multiColumnHeader);
             }
-            m_AssetTreeView.assetRoot = root;
-            m_AssetTreeView.CollapseAll();
-            m_AssetTreeView.Reload();
-            needUpdateAssetTree = false;
+            if(root != null)
+            {
+                m_AssetTreeView.assetRoot = root;
+                m_AssetTreeView.CollapseAll();
+                m_AssetTreeView.Reload();
+                needUpdateAssetTree = false;
+            }
+            
         }
     }
 

@@ -145,7 +145,7 @@ public class ReferenceFinderData
             ad.name = Path.GetFileNameWithoutExtension(path);
             ad.path = path;
             ad.assetDependencyHash = assetDependencyHash.ToString();
-            ad.dependencies = guids;
+            ad.dependencies = new HashSet<string>(guids);
 
             if (assetDict.ContainsKey(guid))
                 assetDict[guid] = ad;
@@ -326,7 +326,7 @@ public class ReferenceFinderData
                     Where(g => assetDict.ContainsKey(g)).
                     ToList();
                 
-                assetDict[guid].dependencies = guids;
+                assetDict[guid].dependencies = new HashSet<string>(guids);
             }
         }
         timeB = DateTime.Now;   //获取当前时间
@@ -488,7 +488,7 @@ public class ReferenceFinderData
         public string name = "";
         public string path = "";
         public string assetDependencyHash;
-        public List<string> dependencies = new List<string>();
+        public HashSet<string> dependencies = new HashSet<string>();
         public HashSet<string> references = new HashSet<string>();
         public AssetState state = AssetState.NORMAL;
     }
