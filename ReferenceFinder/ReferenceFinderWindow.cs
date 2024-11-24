@@ -40,7 +40,7 @@ public class ReferenceFinderWindow : EditorWindow
 
     
     //查找资源引用信息
-    [MenuItem("Assets/Find References In Project %#&f", false, 25)]
+    [MenuItem("Assets/Find References InProject %#&f", false, 25)]
     static void FindRef()
     {
       
@@ -134,6 +134,7 @@ public class ReferenceFinderWindow : EditorWindow
             }
         }
         needUpdateAssetTree = true;
+        
     }
 
     //通过选中资源列表更新TreeView
@@ -141,8 +142,12 @@ public class ReferenceFinderWindow : EditorWindow
     {
         if (needUpdateAssetTree && selectedAssetGuid.Count != 0)
         {
+            DateTime timeA = DateTime.Now;	//获取当前时间
             var root = SelectedAssetGuidToRootItem(selectedAssetGuid);
-            if(m_AssetTreeView == null)
+            DateTime timeB = DateTime.Now;  //获取当前时间
+            string time = (timeB - timeA).TotalSeconds.ToString();   //将时间差转换为秒
+            Debug.Log(string.Format("UpdateAssetTree  SelectedAssetGuidToRootItem 用时{0}秒 ", time));
+            if (m_AssetTreeView == null)
             {
                 //初始化TreeView
                 if (m_TreeViewState == null)
@@ -235,24 +240,48 @@ public class ReferenceFinderWindow : EditorWindow
         int elementCount = 0;
         var root = new AssetViewItem { id = elementCount, depth = -1, displayName = "Root", data = null };
         int depth = 0;
-        var stack = new Stack<Tuple<string, int>>();
+        var stack = new Stack<string[]>(); // 只能存三个 第一个是 当前的guid 第二个深度，第三个父节点guid
         var processed = new HashSet<string>(); // 记录已处理的节点
         var memo = new Dictionary<string, AssetViewItem>(); // 记忆化缓存
 
         foreach (var childGuid in selectedAssetGuid)
         {
-            stack.Push(new Tuple<string, int>(childGuid, depth));
+             string[]  subnode = new string[] { childGuid, depth.ToString(), ""};
+            
+            stack.Push(subnode);
         }
+        
+        Debug.Log("SelectedAssetGuidToRootItem stack : " + stack.Count);
 
         while (stack.Count > 0)
         {
             var current = stack.Pop();
-            if (!processed.Contains(current.Item1))
+            if (!memo.ContainsKey(current[0]))
             {
-                processed.Add(current.Item1);
-                var child = CreateTree(current.Item1, ref elementCount, current.Item2, stack, processed, memo);
+                
+                var child = CreateTree(current[0], ref elementCount, int.Parse(current[1]), stack, memo);
                 if (child != null)
-                    root.AddChild(child);
+                {
+                    if(current[2] == ""){
+                        root.AddChild(child);
+                    }
+                    else
+                    {
+                        AssetViewItem assetViewItem = null;
+                        memo.TryGetValue(current[2], out assetViewItem);
+                        if (assetViewItem != null)
+                        {
+                            assetViewItem.AddChild(child);
+                        }
+                        else{
+                            Debug.LogError("this guid " + current[2]);
+                        }
+                        
+                    }
+                    
+                }
+                    
+                
             }
         }
 
@@ -260,7 +289,7 @@ public class ReferenceFinderWindow : EditorWindow
         return root;
     }
 
-    private AssetViewItem CreateTree(string guid, ref int elementCount, int _depth, Stack<Tuple<string, int>> stack, HashSet<string> processed, Dictionary<string, AssetViewItem> memo)
+    private AssetViewItem CreateTree(string guid, ref int elementCount, int _depth, Stack<string[]> stack, Dictionary<string, AssetViewItem> memo)
     {
         if (memo.ContainsKey(guid))
             return memo[guid];
@@ -289,7 +318,8 @@ public class ReferenceFinderWindow : EditorWindow
         foreach (var childGuid in childGuids)
         {
             //var child = CreateTree(childGuid, ref elementCount, _depth + 1, stack);
-            stack.Push(new Tuple<string, int>(childGuid, _depth + 1));
+            string[] subnode = new string[] { childGuid, (_depth + 1).ToString(), guid };
+            stack.Push(subnode);
         }
 
         return root;

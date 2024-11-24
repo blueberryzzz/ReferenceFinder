@@ -68,8 +68,8 @@ public class ReferenceFinderData
             DateTime timeA = DateTime.Now;	//获取当前时间
             var allAssets = AssetDatabase.GetAllAssetPaths();
             DateTime timeB = DateTime.Now;	//获取当前时间
-            TimeSpan ts = timeB - timeA;	//计算时间差
-            string time = ts.TotalSeconds.ToString();	//将时间差转换为秒
+            
+            string time = (timeB - timeA).TotalSeconds.ToString();	//将时间差转换为秒
             Debug.Log(string.Format(" AssetDatabase.GetAllAssetPaths() 用时{0}秒 " , time));
             
             int totalCount = allAssets.Length;
